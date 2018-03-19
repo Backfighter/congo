@@ -7,10 +7,13 @@ import (
 )
 
 func init() {
+	// Set up environment
+	// This simulates a already setup environment
 	os.Setenv("number", "54")
 	os.Setenv("decimal", "0.5")
 }
 
+// Example is a basic example for the usage of the environment source.
 func Example() {
 	// Get environment source
 	src := New()

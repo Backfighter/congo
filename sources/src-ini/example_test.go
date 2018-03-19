@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// content is the content of a ini-file used in
+// this example
 const content = "" +
 	"# Comment\n" +
 	"; Number\n" +
@@ -14,6 +16,7 @@ const content = "" +
 	"[section]\n" +
 	"duration=2h45m"
 
+// Example is a basic example for the usage of the ini source.
 func Example() {
 	// Get ini source
 	bytes := []byte(content)

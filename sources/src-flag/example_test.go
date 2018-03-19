@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Example is a basic example for the flag source
 func Example() {
 	// Set up arguments
 	// This simulates arguments passed to the executable
