@@ -1,8 +1,9 @@
 package src_ini
 
 import (
-	"congo"
 	"fmt"
+
+	"gitlab.com/silentteacup/congo"
 )
 
 /*

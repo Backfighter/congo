@@ -1,7 +1,7 @@
 package src_ini
 
 import (
-	"congo"
+	"gitlab.com/silentteacup/congo"
 
 	"io"
 

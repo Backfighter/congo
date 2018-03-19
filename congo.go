@@ -55,8 +55,12 @@ type Setting struct {
 	DefValue string // default value (as text)
 }
 
-func New(name string, sources ...Source) *Congo {
-	return &Congo{
+// New creates a new configuration that uses given sources to resolve
+// the settings. Sources will be prioritized based on the order they are
+// given to this function. Sources in the front will overwrite settings
+// provides by sources in the back.
+func New(name string, sources ...Source) Congo {
+	return &congo{
 		sources,
 		make(map[string]*Setting),
 		name,
@@ -64,22 +68,91 @@ func New(name string, sources ...Source) *Congo {
 	}
 }
 
-type Congo struct {
-	sources  []Source // sources for the
-	settings map[string]*Setting
-	name     string
+// Congo is a configuration capable of loading settings from different
+// sources.
+type Congo interface {
+	// BoolVar defines a bool setting with specified name, default value, and usage string.
+	// The argument p points to a bool variable in which to store the value of the setting.
+	BoolVar(p *bool, name string, value bool, usage string)
+	// Bool defines a bool setting with specified name, default value, and usage string.
+	// The return value is the address of a bool variable that stores the value of the setting.
+	Bool(name string, value bool, usage string) *bool
+
+	// IntVar defines an int setting with specified name, default value, and usage string.
+	// The argument p points to an int variable in which to store the value of the setting.
+	IntVar(p *int, name string, value int, usage string)
+	// Int defines an int setting with specified name, default value, and usage string.
+	// The return value is the address of an int variable that stores the value of the setting.
+	Int(name string, value int, usage string) *int
+
+	// Int64Var defines an int64 setting with specified name, default value, and usage string.
+	// The argument p points to an int64 variable in which to store the value of the setting.
+	Int64Var(p *int64, name string, value int64, usage string)
+	// Int64 defines an int64 setting with specified name, default value, and usage string.
+	// The return value is the address of an int64 variable that stores the value of the setting.
+	Int64(name string, value int64, usage string) *int64
+
+	// UintVar defines a uint setting with specified name, default value, and usage string.
+	// The argument p points to a uint variable in which to store the value of the setting.
+	UintVar(p *uint, name string, value uint, usage string)
+	// Uint64 defines a uint64 setting with specified name, default value, and usage string.
+	// The return value is the address of a uint64 variable that stores the value of the setting.
+	Uint64(name string, value uint64, usage string) *uint64
+
+	// StringVar defines a string setting with specified name, default value, and usage string.
+	// The argument p points to a string variable in which to store the value of the setting.
+	StringVar(p *string, name string, value string, usage string)
+	// String defines a string setting with specified name, default value, and usage string.
+	// The return value is the address of a string variable that stores the value of the setting.
+	String(name string, value string, usage string) *string
+
+	// Float64Var defines a float64 setting with specified name, default value, and usage string.
+	// The argument p points to a float64 variable in which to store the value of the setting.
+	Float64Var(p *float64, name string, value float64, usage string)
+	// Float64 defines a float64 setting with specified name, default value, and usage string.
+	// The return value is the address of a float64 variable that stores the value of the setting.
+	Float64(name string, value float64, usage string) *float64
+
+	// DurationVar defines a time.Duration setting with specified name, default value, and usage string.
+	// The argument p points to a time.Duration variable in which to store the value of the setting.
+	// The setting accepts a value acceptable to time.ParseDuration.
+	DurationVar(p *time.Duration, name string, value time.Duration, usage string)
+	// Duration defines a time.Duration setting with specified name, default value, and usage string.
+	// The return value is the address of a time.Duration variable that stores the value of the setting.
+	// The setting accepts a value acceptable to time.ParseDuration.
+	Duration(name string, value time.Duration, usage string) *time.Duration
+
+	// Var defines a setting with the specified name and usage string. The type and
+	// value of the setting are represented by the first argument, of type Value, which
+	// typically holds a user-defined implementation of Value. For instance, the
+	// caller could create a setting that turns a comma-separated string into a slice
+	// of strings by giving the slice the methods of Value; in particular, Set would
+	// decompose the comma-separated string into the slice.
+	Var(value Value, name string, usage string)
+
+	// Init initializes the configuration sources.
+	Init() error
+
+	// Load loads the configuration from the sources.
+	Load() error
+}
+
+type congo struct {
+	sources  []Source            // sources for the settings
+	settings map[string]*Setting // settings
+	name     string              // name of the configuration
 	output   io.Writer
 }
 
 // BoolVar defines a bool setting with specified name, default value, and usage string.
 // The argument p points to a bool variable in which to store the value of the setting.
-func (c *Congo) BoolVar(p *bool, name string, value bool, usage string) {
+func (c *congo) BoolVar(p *bool, name string, value bool, usage string) {
 	c.Var(NewBoolValue(value, p), name, usage)
 }
 
 // Bool defines a bool setting with specified name, default value, and usage string.
 // The return value is the address of a bool variable that stores the value of the setting.
-func (c *Congo) Bool(name string, value bool, usage string) *bool {
+func (c *congo) Bool(name string, value bool, usage string) *bool {
 	p := new(bool)
 	c.BoolVar(p, name, value, usage)
 	return p
@@ -87,13 +160,13 @@ func (c *Congo) Bool(name string, value bool, usage string) *bool {
 
 // IntVar defines an int setting with specified name, default value, and usage string.
 // The argument p points to an int variable in which to store the value of the setting.
-func (c *Congo) IntVar(p *int, name string, value int, usage string) {
+func (c *congo) IntVar(p *int, name string, value int, usage string) {
 	c.Var(NewIntValue(value, p), name, usage)
 }
 
 // Int defines an int setting with specified name, default value, and usage string.
 // The return value is the address of an int variable that stores the value of the setting.
-func (c *Congo) Int(name string, value int, usage string) *int {
+func (c *congo) Int(name string, value int, usage string) *int {
 	p := new(int)
 	c.IntVar(p, name, value, usage)
 	return p
@@ -101,13 +174,13 @@ func (c *Congo) Int(name string, value int, usage string) *int {
 
 // Int64Var defines an int64 setting with specified name, default value, and usage string.
 // The argument p points to an int64 variable in which to store the value of the setting.
-func (c *Congo) Int64Var(p *int64, name string, value int64, usage string) {
+func (c *congo) Int64Var(p *int64, name string, value int64, usage string) {
 	c.Var(NewInt64Value(value, p), name, usage)
 }
 
 // Int64 defines an int64 setting with specified name, default value, and usage string.
 // The return value is the address of an int64 variable that stores the value of the setting.
-func (c *Congo) Int64(name string, value int64, usage string) *int64 {
+func (c *congo) Int64(name string, value int64, usage string) *int64 {
 	p := new(int64)
 	c.Int64Var(p, name, value, usage)
 	return p
@@ -115,13 +188,13 @@ func (c *Congo) Int64(name string, value int64, usage string) *int64 {
 
 // UintVar defines a uint setting with specified name, default value, and usage string.
 // The argument p points to a uint variable in which to store the value of the setting.
-func (c *Congo) UintVar(p *uint, name string, value uint, usage string) {
+func (c *congo) UintVar(p *uint, name string, value uint, usage string) {
 	c.Var(NewUintValue(value, p), name, usage)
 }
 
 // Uint defines a uint setting with specified name, default value, and usage string.
 // The return value is the address of a uint variable that stores the value of the setting.
-func (c *Congo) Uint(name string, value uint, usage string) *uint {
+func (c *congo) Uint(name string, value uint, usage string) *uint {
 	p := new(uint)
 	c.UintVar(p, name, value, usage)
 	return p
@@ -129,13 +202,13 @@ func (c *Congo) Uint(name string, value uint, usage string) *uint {
 
 // Uint64Var defines a uint64 setting with specified name, default value, and usage string.
 // The argument p points to a uint64 variable in which to store the value of the setting.
-func (c *Congo) Uint64Var(p *uint64, name string, value uint64, usage string) {
+func (c *congo) Uint64Var(p *uint64, name string, value uint64, usage string) {
 	c.Var(NewUint64Value(value, p), name, usage)
 }
 
 // Uint64 defines a uint64 setting with specified name, default value, and usage string.
 // The return value is the address of a uint64 variable that stores the value of the setting.
-func (c *Congo) Uint64(name string, value uint64, usage string) *uint64 {
+func (c *congo) Uint64(name string, value uint64, usage string) *uint64 {
 	p := new(uint64)
 	c.Uint64Var(p, name, value, usage)
 	return p
@@ -143,13 +216,13 @@ func (c *Congo) Uint64(name string, value uint64, usage string) *uint64 {
 
 // StringVar defines a string setting with specified name, default value, and usage string.
 // The argument p points to a string variable in which to store the value of the setting.
-func (c *Congo) StringVar(p *string, name string, value string, usage string) {
+func (c *congo) StringVar(p *string, name string, value string, usage string) {
 	c.Var(NewStringValue(value, p), name, usage)
 }
 
 // String defines a string setting with specified name, default value, and usage string.
 // The return value is the address of a string variable that stores the value of the setting.
-func (c *Congo) String(name string, value string, usage string) *string {
+func (c *congo) String(name string, value string, usage string) *string {
 	p := new(string)
 	c.StringVar(p, name, value, usage)
 	return p
@@ -157,13 +230,13 @@ func (c *Congo) String(name string, value string, usage string) *string {
 
 // Float64Var defines a float64 setting with specified name, default value, and usage string.
 // The argument p points to a float64 variable in which to store the value of the setting.
-func (c *Congo) Float64Var(p *float64, name string, value float64, usage string) {
+func (c *congo) Float64Var(p *float64, name string, value float64, usage string) {
 	c.Var(NewFloat64Value(value, p), name, usage)
 }
 
 // Float64 defines a float64 setting with specified name, default value, and usage string.
 // The return value is the address of a float64 variable that stores the value of the setting.
-func (c *Congo) Float64(name string, value float64, usage string) *float64 {
+func (c *congo) Float64(name string, value float64, usage string) *float64 {
 	p := new(float64)
 	c.Float64Var(p, name, value, usage)
 	return p
@@ -172,14 +245,14 @@ func (c *Congo) Float64(name string, value float64, usage string) *float64 {
 // DurationVar defines a time.Duration setting with specified name, default value, and usage string.
 // The argument p points to a time.Duration variable in which to store the value of the setting.
 // The setting accepts a value acceptable to time.ParseDuration.
-func (c *Congo) DurationVar(p *time.Duration, name string, value time.Duration, usage string) {
+func (c *congo) DurationVar(p *time.Duration, name string, value time.Duration, usage string) {
 	c.Var(NewDurationValue(value, p), name, usage)
 }
 
 // Duration defines a time.Duration setting with specified name, default value, and usage string.
 // The return value is the address of a time.Duration variable that stores the value of the setting.
 // The setting accepts a value acceptable to time.ParseDuration.
-func (c *Congo) Duration(name string, value time.Duration, usage string) *time.Duration {
+func (c *congo) Duration(name string, value time.Duration, usage string) *time.Duration {
 	p := new(time.Duration)
 	c.DurationVar(p, name, value, usage)
 	return p
@@ -191,7 +264,7 @@ func (c *Congo) Duration(name string, value time.Duration, usage string) *time.D
 // caller could create a setting that turns a comma-separated string into a slice
 // of strings by giving the slice the methods of Value; in particular, Set would
 // decompose the comma-separated string into the slice.
-func (c *Congo) Var(value Value, name string, usage string) {
+func (c *congo) Var(value Value, name string, usage string) {
 	// Remember the default value as a string; it won't change.
 	setting := &Setting{name, usage, value, value.String()}
 	_, alreadythere := c.settings[name]
@@ -212,7 +285,7 @@ func (c *Congo) Var(value Value, name string, usage string) {
 }
 
 // Init initializes the configuration sources.
-func (c *Congo) Init() error {
+func (c *congo) Init() error {
 	for i := len(c.sources) - 1; i >= 0; i-- {
 		if err := c.sources[i].Init(c.settings); err != nil {
 			return err
@@ -222,7 +295,7 @@ func (c *Congo) Init() error {
 }
 
 // Load loads the configuration from the sources.
-func (c *Congo) Load() error {
+func (c *congo) Load() error {
 	for i := len(c.sources) - 1; i >= 0; i-- {
 		if err := c.sources[i].Load(c.settings); err != nil {
 			return err

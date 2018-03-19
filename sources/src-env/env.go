@@ -1,8 +1,9 @@
 package src_env
 
 import (
-	"congo"
 	"os"
+
+	"gitlab.com/silentteacup/congo"
 )
 
 /*

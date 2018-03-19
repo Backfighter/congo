@@ -2,12 +2,13 @@ package src_ini
 
 import (
 	"bytes"
-	"congo"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"gitlab.com/silentteacup/congo"
 )
 
 /*

@@ -56,7 +56,7 @@ func TestCongo_Bool(t *testing.T) {
 	source := &testSource{}
 	sources := []Source{source}
 	output := bytes.NewBufferString("")
-	c := Congo{
+	c := congo{
 		sources,
 		make(map[string]*Setting),
 		"test",

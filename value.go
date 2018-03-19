@@ -1,8 +1,8 @@
 package congo
 
 import (
-	"time"
 	"strconv"
+	"time"
 )
 
 /*
@@ -64,16 +64,6 @@ func (b *boolValue) Get() interface{} { return bool(*b) }
 func (b *boolValue) String() string { return strconv.FormatBool(bool(*b)) }
 
 func (b *boolValue) IsBoolFlag() bool { return true }
-
-// optional interface to indicate boolean flags that can be
-
-// supplied without "=value" text
-
-type boolFlag interface {
-	Value
-
-	IsBoolFlag() bool
-}
 
 // -- int Value
 
@@ -255,15 +245,15 @@ func (d *durationValue) Get() interface{} { return time.Duration(*d) }
 
 func (d *durationValue) String() string { return (*time.Duration)(d).String() }
 
-// Value is the interface to the dynamic value stored in a flag.
+// Value is the interface to the dynamic value stored in a settings.
 // (The default value is represented as a string.)
 //
 // If a Value has an IsBoolFlag() bool method returning true,
 // the command-line parser makes -name equivalent to -name=true
 // rather than using the next command-line argument.
 //
-// Set is called once, in command line order, for each flag present.
-// The flag package may call the String method with a zero-valued receiver,
+// Set is called once, in command line order, for each settings present.
+// The settings package may call the String method with a zero-valued receiver,
 // such as a nil pointer.
 type Value interface {
 	String() string

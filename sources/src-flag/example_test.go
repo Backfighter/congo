@@ -1,10 +1,11 @@
 package src_flag
 
 import (
-	"congo"
 	"flag"
 	"fmt"
 	"os"
+
+	"gitlab.com/silentteacup/congo"
 )
 
 /*
