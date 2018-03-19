@@ -52,7 +52,7 @@ type Setting struct {
 	Name     string // name the key of the setting
 	Usage    string // contains information on how to use the setting
 	Value    Value  // value as set
-	DefValue string // default value (as text); for usage message
+	DefValue string // default value (as text)
 }
 
 func New(name string, sources ...Source) *Congo {
@@ -212,15 +212,21 @@ func (c *Congo) Var(value Value, name string, usage string) {
 }
 
 // Init initializes the configuration sources.
-func (c *Congo) Init() {
+func (c *Congo) Init() error {
 	for i := len(c.sources) - 1; i >= 0; i-- {
-		c.sources[i].Init(c.settings)
+		if err := c.sources[i].Init(c.settings); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Load loads the configuration from the sources.
-func (c *Congo) Load() {
+func (c *Congo) Load() error {
 	for i := len(c.sources) - 1; i >= 0; i-- {
-		c.sources[i].Load(c.settings)
+		if err := c.sources[i].Load(c.settings); err != nil {
+			return err
+		}
 	}
+	return nil
 }
