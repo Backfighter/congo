@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"time"
 )
 
@@ -302,4 +303,102 @@ func (c *congo) Load() error {
 		}
 	}
 	return nil
+}
+
+// Using takes an arbitrary struct and turns it into a configuration.
+// Fields of the struct are read and linked to the configuration.
+// Values of the fields are updated as soon as Load() is called.
+//
+// Fields can be annotated with tags describing the setting. Available tags are:
+//
+// `name`: Will be used as name. If not present the name of the field will be used.
+//
+// `usage`: Will be used as usage message (can be omitted).
+//
+// `default`: Will be used as default value for the configuration. If omitted the
+// default for the corresponding type will be used.
+//
+// Supported types for field are: int, int64, uint, uint64, strings, float64, time.Duration
+// and Value.
+// A field that implements the Value type can be used to add custom, yet unsupported types.
+// These fields will be directly added using the Var() method.
+//
+// All other types will be ignored!
+func (c *congo) Using(configurationStruct interface{}) {
+	v := reflect.ValueOf(configurationStruct)
+	for i := 0; i < v.NumField(); i++ {
+		c.register(v.Type().Field(i), v.Field(i).Interface())
+	}
+}
+
+const (
+	usageTag   = "usage"
+	defaultTag = "default"
+	nameTag    = "name"
+)
+
+// register registers a StructField with given value into the settings
+// the type of the value is converted into a Value and added as settings
+// using additional information from tags.
+func (c *congo) register(f reflect.StructField, v interface{}) {
+	usage := f.Tag.Get(usageTag)
+	d, hasDefault := f.Tag.Lookup(defaultTag)
+	name, ok := f.Tag.Lookup(nameTag)
+	if !ok {
+		name = f.Name
+	}
+	switch a := v.(type) {
+	case bool:
+		t := NewBoolValue(false, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case int:
+		t := NewIntValue(0, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case int64:
+		t := NewInt64Value(0, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case uint:
+		t := NewUintValue(0, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case uint64:
+		t := NewUint64Value(0, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case string:
+		t := NewStringValue("", &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case float64:
+		t := NewFloat64Value(0.0, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case time.Duration:
+		t := NewDurationValue(0, &a)
+		if hasDefault {
+			t.Set(d)
+		}
+		c.Var(t, name, usage)
+	case Value:
+		c.Var(a, name, usage)
+	default:
+		// Do nothing.
+	}
 }
