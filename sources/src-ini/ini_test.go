@@ -30,8 +30,10 @@ func Example() {
 	subCfg := congo.New("section", src.Section("section"))
 	duration := subCfg.Duration("duration", 0, "Set the duration.")
 
-	// load configurations
+	// Load configurations
+	cfg.Init()
 	cfg.Load()
+	subCfg.Init()
 	subCfg.Load()
 
 	if *debug {
