@@ -7,7 +7,7 @@ variables:
 before_script:
   - go version
   - export GO_PROJECT_DIR="$GOPATH/src/$PROJECT_PATH"
-  - time git clone $CI_REPOSITORY_URL $GO_PROJECT_DIR
+  - git clone $CI_REPOSITORY_URL $GO_PROJECT_DIR
   - cd $GO_PROJECT_DIR
   - git checkout $CI_COMMIT_REF_NAME
   - deps="$(./_scripts/list_deps.sh)"
