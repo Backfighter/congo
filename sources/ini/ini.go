@@ -1,9 +1,11 @@
-package src_ini
+package ini
 
 import (
-	"fmt"
-
 	"gitlab.com/silentteacup/congo"
+
+	"io"
+
+	"github.com/go-ini/ini"
 )
 
 /*
@@ -36,47 +38,67 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// content is the content of a ini-file used in
-// this example
-const content = "" +
-	"# Comment\n" +
-	"; Number\n" +
-	"number=54\n" +
-	"; Decimal\n" +
-	"decimal=0.5\n" +
-	"[section]\n" +
-	"duration=2h45m"
+// New creates a new ini source which reads from
+// given reader.
+func New(reader io.ReadCloser) IniSource {
+	return &iniSource{reader, ""}
+}
 
-// Example is a basic example for the usage of the ini source.
-func Example() {
-	// Get ini source
-	bytes := []byte(content)
-	src := FromBytes(bytes)
+// FromBytes creates a new ini source directly from
+// the data that should be read.
+func FromBytes(content []byte) IniSource {
+	return &iniSource{content, ""}
+}
 
-	// main configuration
-	cfg := congo.New("main", src)
+// FromFile creates a new ini source which uses the
+// file at given path to load the configuration.
+func FromFile(path string) IniSource {
+	return &iniSource{path, ""}
+}
 
-	debug := cfg.Bool("debug", false, "Can be used to enable debug mode.")
-	number := cfg.Int("number", 0, "Set a number")
-	decimal := cfg.Float64("decimal", 0.2, "Set a decimal")
+// IniSource a ini source uses input in ini-syntax
+// to load settings.
+type IniSource interface {
+	congo.Source
+	Section(name string) IniSource
+}
 
-	// section of configuration
-	subCfg := congo.New("section", src.Section("section"))
-	duration := subCfg.Duration("duration", 0, "Set the duration.")
+type iniSource struct {
+	source  interface{}
+	section string
+}
 
-	// Load configurations
-	cfg.Init()
-	cfg.Load()
-	subCfg.Init()
-	subCfg.Load()
+// Init initializes the ini source.
+func (s *iniSource) Init(map[string]*congo.Setting) error {
+	// Do nothing
+	return nil
+}
 
-	if *debug {
-		fmt.Println("Debug enabled!")
+// Load loads the settings from input in ini-syntax.
+func (s *iniSource) Load(settings map[string]*congo.Setting) error {
+	cfg, err := ini.Load(s.source)
+	if err != nil {
+		return err
 	}
-	fmt.Printf("Using number %d and decimal %f\n", *number, *decimal)
+	section, err := cfg.GetSection(s.section)
+	if err != nil {
+		return err
+	}
+	for key, setting := range settings {
+		if !section.HasKey(key) {
+			continue
+		}
+		k, err := section.GetKey(key)
+		if err != nil {
+			return err
+		}
+		setting.Value.Set(k.Value())
+	}
+	return nil
+}
 
-	fmt.Printf("%v", *duration)
-	//Output:
-	//Using number 54 and decimal 0.500000
-	//2h45m0s
+// Section creates a sub-source that loads settings from a section
+// of the ini input.
+func (s *iniSource) Section(name string) IniSource {
+	return &iniSource{s.source, name}
 }

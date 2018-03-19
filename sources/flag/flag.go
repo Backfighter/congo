@@ -1,8 +1,7 @@
-package src_flag
+package flag
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"gitlab.com/silentteacup/congo"
@@ -38,32 +37,42 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Example is a basic example for the flag source
-func Example() {
-	// Set up arguments
-	// This simulates arguments passed to the executable
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-	os.Args = []string{"cmd", "-number=54", "-decimal=0.5", "args"}
+// New creates a new flag source using the standard command
+// line FlagSet(flag.CommandLine) and arguments from the command line.
+func New() congo.Source {
+	return FromFlagSet(flag.CommandLine, standardLoader)
+}
 
-	// Get environment source
-	src := New()
+// ArgLoader is used to load arguments when parsing flags.
+type ArgLoader func() []string
 
-	// Configuration
-	cfg := congo.New("main", src)
+// FromFlagSet creates a new flag source using a custom FlagSet and
+// argument loader. The argument loader specifies how arguments are loaded
+// when the flags are parsed.
+func FromFlagSet(set *flag.FlagSet, loader ArgLoader) congo.Source {
+	return &source{set, loader}
+}
 
-	debug := cfg.Bool("debug", false, "Can be used to enable debug mode.")
-	number := cfg.Int("number", 0, "Set a number")
-	decimal := cfg.Float64("decimal", 0.2, "Set a decimal")
+// standardLoader loads the commandline arguments
+func standardLoader() []string {
+	return os.Args[1:]
+}
 
-	// Load configurations
-	cfg.Init()
-	cfg.Load()
+type source struct {
+	set *flag.FlagSet
+	ArgLoader
+}
 
-	if *debug {
-		fmt.Println("Debug enabled!")
+// Init registers the flags for this source
+func (s *source) Init(settings map[string]*congo.Setting) error {
+	for key, setting := range settings {
+		s.set.Var(setting.Value, key, setting.Usage)
 	}
-	fmt.Printf("Using number %d and decimal %f\n", *number, *decimal)
+	return nil
+}
 
-	//Output:
-	//Using number 54 and decimal 0.500000
+// Load parses the flags using arguments loaded by the argument loader.
+func (s *source) Load(settings map[string]*congo.Setting) error {
+	s.set.Parse(s.ArgLoader())
+	return nil
 }

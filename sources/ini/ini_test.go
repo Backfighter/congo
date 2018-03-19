@@ -1,4 +1,4 @@
-package src_ini
+package ini
 
 import (
 	"bytes"

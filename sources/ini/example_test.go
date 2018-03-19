@@ -1,7 +1,7 @@
-package src_env
+package ini
 
 import (
-	"os"
+	"fmt"
 
 	"gitlab.com/silentteacup/congo"
 )
@@ -36,27 +36,47 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// New creates a new environment source. Which directly
-// loads settings from environment variables.
-func New() congo.Source {
-	return &source{}
-}
+// content is the content of a ini-file used in
+// this example
+const content = "" +
+	"# Comment\n" +
+	"; Number\n" +
+	"number=54\n" +
+	"; Decimal\n" +
+	"decimal=0.5\n" +
+	"[section]\n" +
+	"duration=2h45m"
 
-type source struct{}
+// Example is a basic example for the usage of the ini source.
+func Example() {
+	// Get ini source
+	bytes := []byte(content)
+	src := FromBytes(bytes)
 
-// Inits initializes this source
-func (s *source) Init(map[string]*congo.Setting) error {
-	// Do nothing
-	return nil
-}
+	// main configuration
+	cfg := congo.New("main", src)
 
-// Load loads settings from environment variables.
-func (s *source) Load(settings map[string]*congo.Setting) error {
-	for key, setting := range settings {
-		value, ok := os.LookupEnv(key)
-		if ok {
-			setting.Value.Set(value)
-		}
+	debug := cfg.Bool("debug", false, "Can be used to enable debug mode.")
+	number := cfg.Int("number", 0, "Set a number")
+	decimal := cfg.Float64("decimal", 0.2, "Set a decimal")
+
+	// section of configuration
+	subCfg := congo.New("section", src.Section("section"))
+	duration := subCfg.Duration("duration", 0, "Set the duration.")
+
+	// Load configurations
+	cfg.Init()
+	cfg.Load()
+	subCfg.Init()
+	subCfg.Load()
+
+	if *debug {
+		fmt.Println("Debug enabled!")
 	}
-	return nil
+	fmt.Printf("Using number %d and decimal %f\n", *number, *decimal)
+
+	fmt.Printf("%v", *duration)
+	//Output:
+	//Using number 54 and decimal 0.500000
+	//2h45m0s
 }
