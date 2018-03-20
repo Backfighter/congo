@@ -248,25 +248,11 @@ func (d *durationValue) String() string { return (*time.Duration)(d).String() }
 // Value is the interface to the dynamic value stored in a settings.
 // (The default value is represented as a string.)
 //
-// If a Value has an IsBoolFlag() bool method returning true,
-// the command-line parser makes -name equivalent to -name=true
-// rather than using the next command-line argument.
-//
-// Set is called once, in command line order, for each settings present.
+// Set is called whenever a setting is loaded from a source.
 // The settings package may call the String method with a zero-valued receiver,
 // such as a nil pointer.
 type Value interface {
 	String() string
 
 	Set(string) error
-}
-
-// Getter is an interface that allows the contents of a Value to be retrieved.
-// It wraps the Value interface, rather than being part of it, because it
-// appeared after Go 1 and its compatibility rules. All Value types provided
-// by this package satisfy the Getter interface.
-type Getter interface {
-	Value
-
-	Get() interface{}
 }

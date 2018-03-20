@@ -3,6 +3,7 @@ package congo
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 /*
@@ -52,9 +53,9 @@ func (t *testSource) Load(param map[string]*Setting) error {
 	return t.LoadErr
 }
 
-func TestCongo_Bool(t *testing.T) {
-	source := &testSource{}
-	sources := []Source{source}
+func setupTestCongo() (Congo, *testSource) {
+	s := &testSource{}
+	sources := []Source{s}
 	output := bytes.NewBufferString("")
 	c := congo{
 		sources,
@@ -62,9 +63,14 @@ func TestCongo_Bool(t *testing.T) {
 		"test",
 		output,
 	}
+	return &c, s
+}
+
+func TestCongo_Bool(t *testing.T) {
+	c, s := setupTestCongo()
 	v := c.Bool("test", false, "Usage")
 	c.Load()
-	param, ok := source.LoadParam["test"]
+	param, ok := s.LoadParam["test"]
 	if !ok {
 		t.Errorf("Expected load parameters to contain %s.\nBut didn't extist.\n", "test")
 		return
@@ -72,5 +78,81 @@ func TestCongo_Bool(t *testing.T) {
 	param.Value.Set("true")
 	if *v != true {
 		t.Errorf("Expected value to be set to true.\nBut was set to %v.\n", *v)
+	}
+}
+
+func TestCongo_Int64(t *testing.T) {
+	c, s := setupTestCongo()
+	v := c.Int64("test", -23429284, "Usage")
+	c.Load()
+	param, ok := s.LoadParam["test"]
+	if !ok {
+		t.Errorf("Expected load parameters to contain %s.\nBut didn't extist.\n", "test")
+		return
+	}
+	param.Value.Set("5")
+	if *v != 5 {
+		t.Errorf("Expected value to be set to %d.\nBut was set to %d.\n", 5, *v)
+	}
+}
+
+func TestCongo_Uint(t *testing.T) {
+	c, s := setupTestCongo()
+	v := c.Uint("test", 72938479284, "Usage")
+	c.Load()
+	param, ok := s.LoadParam["test"]
+	if !ok {
+		t.Errorf("Expected load parameters to contain %s.\nBut didn't extist.\n", "test")
+		return
+	}
+	param.Value.Set("9")
+	if *v != 9 {
+		t.Errorf("Expected value to be set to %d.\nBut was set to %d.\n", 9, *v)
+	}
+}
+
+func TestCongo_Uint64(t *testing.T) {
+	c, s := setupTestCongo()
+	v := c.Uint64("test", 0, "Usage")
+	c.Load()
+	param, ok := s.LoadParam["test"]
+	if !ok {
+		t.Errorf("Expected load parameters to contain %s.\nBut didn't extist.\n", "test")
+		return
+	}
+	param.Value.Set("8980980")
+	if *v != 8980980 {
+		t.Errorf("Expected value to be set to %d.\nBut was set to %d.\n", 8980980, *v)
+	}
+}
+
+func TestCongo_String(t *testing.T) {
+	c, s := setupTestCongo()
+	v := c.String("test", "string", "Usage")
+	c.Load()
+	param, ok := s.LoadParam["test"]
+	if !ok {
+		t.Errorf("Expected load parameters to contain %s.\nBut didn't extist.\n", "test")
+		return
+	}
+	param.Value.Set("new string")
+	if *v != "new string" {
+		t.Errorf("Expected value to be set to %s.\nBut was set to %s.\n", "new string", *v)
+	}
+}
+
+func TestCongo_Duration(t *testing.T) {
+	c, s := setupTestCongo()
+	v := c.Duration("test", time.Hour*3, "Usage")
+	c.Load()
+	param, ok := s.LoadParam["test"]
+	if !ok {
+		t.Errorf("Expected load parameters to contain %s.\nBut didn't extist.\n", "test")
+		return
+	}
+	param.Value.Set("5h3m")
+	if *v != time.Hour*5+time.Minute*3 {
+		t.Errorf("Expected value to be set to %v.\nBut was set to %v.\n",
+			time.Hour*5+time.Minute*3, *v)
 	}
 }
