@@ -118,7 +118,7 @@ func (s *ExampleSource) Load(settings map[string]*Setting) error {
 	return nil
 }
 
-func Example() {
+func Example_Struct() {
 	defaultCfg := Configuration{
 		UpdateInterval: time.Minute * 5,
 		ExecutionPath:  "/execution/path",
@@ -139,4 +139,47 @@ func Example() {
 	fmt.Printf("%+v", defaultCfg)
 	// Output:
 	// {UpdateInterval:1h0m0s ExecutionPath:/execution/path MagicNumber:0 MagicDecimal:0.8 Custom:9:8}
+}
+
+func Example() {
+	cfg := New("main", &ExampleSource{})
+
+	// Using Var
+	updateInterval := time.Minute * 1
+	executionPath := ""
+	custom := &customValue{2, 6}
+	cfg.DurationVar(
+		&updateInterval,
+		"update-interval",
+		time.Minute*5,
+		"Controls the time between updates",
+	).StringVar(
+		&executionPath,
+		"execution-path",
+		"/execution/path",
+		"",
+	).Var(custom, "Custom", "")
+
+	// Using assignment
+	magicNumber := cfg.Int("MagicNumber", 5, "")
+	magicDecimal := cfg.Float64("MagicDecimal", 0.8, "")
+
+	if err := cfg.Init(); err != nil {
+		panic(err)
+	}
+	if err := cfg.Load(); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Update Interval: %v\n"+
+		"Execution path: %s\n"+
+		"Magic number: %d\n"+
+		"Magic decimal: %f\n"+
+		"Custom: %v\n", updateInterval, executionPath, *magicNumber, *magicDecimal, custom)
+	// Output:
+	// Update Interval: 1h0m0s
+	// Execution path: /execution/path
+	// Magic number: 0
+	// Magic decimal: 0.800000
+	// Custom: 9:8
 }
