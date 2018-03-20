@@ -202,3 +202,32 @@ field.
 You can look at [value.go](https://gitlab.com/SilentTeaCup/congo/blob/master/value.go) to 
 see how they are normally implemented. And even open MRs with new types you think 
 everyone will need.
+
+## How do I get this congo thing you're talking about?
+
+It's simple:
+```bash
+go get gitlab.com/silentteacup/congo
+```
+
+And then:
+```go
+import (
+  "gitlab.com/silentteacup/congo"
+)
+```
+
+Same goes for the sources:
+```bash
+go get gitlab.com/silentteacup/congo/sources/ini
+go get gitlab.com/silentteacup/congo/sources/env
+#...
+```
+```go
+import (
+  "gitlab.com/silentteacup/congo"
+  "gitlab.com/silentteacup/congo/sources/ini"
+  "gitlab.com/silentteacup/congo/sources/env"
+  //...
+)
+```
