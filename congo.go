@@ -104,6 +104,15 @@ type Congo interface {
 	//
 	// Returns itself so calls can be chained.
 	UintVar(p *uint, name string, value uint, usage string) Congo
+	// Uint defines a uint setting with specified name, default value, and usage string.
+	// The return value is the address of a uint variable that stores the value of the setting.
+	Uint(name string, value uint, usage string) *uint
+
+	// Uint64Var defines a uint64 setting with specified name, default value, and usage string.
+	// The argument p points to a uint64 variable in which to store the value of the setting.
+	//
+	// Returns itself so calls can be chained.
+	Uint64Var(p *uint64, name string, value uint64, usage string) Congo
 	// Uint64 defines a uint64 setting with specified name, default value, and usage string.
 	// The return value is the address of a uint64 variable that stores the value of the setting.
 	Uint64(name string, value uint64, usage string) *uint64
