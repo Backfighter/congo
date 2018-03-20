@@ -1,5 +1,5 @@
 # Congo  
-(*configure go*)
+(*configure go*)  
 [![pipeline status](https://gitlab.com/SilentTeaCup/congo/badges/master/pipeline.svg)](https://gitlab.com/SilentTeaCup/congo/commits/master)
 [![coverage report](https://gitlab.com/SilentTeaCup/congo/badges/master/coverage.svg)](https://gitlab.com/SilentTeaCup/congo/commits/master)
 
@@ -51,7 +51,7 @@ func Example() {
 Sources are prioritised in the oder they are passed to New().
 Sources before others will overwrite the settings of the following sources.
 
-### But I want none of this refection magic business!
+### But I want none of this reflection magic business!
 
 No problem. Congo has you covered.
 ```go
@@ -71,13 +71,68 @@ func Example() {
 	if err := cfg.Load(); err != nil {
 		panic(err)
 	}
-
-	fmt.Printf("%+v", defaultCfg)
-	// Output:
-	// {MaxUsers:100 Debug:true InitialPoints:0 MaxPoints:3000000}
 }
 ```
 You can get a pointer to the setting yourself and manage them however you want.
+
+### And how to I handle sections in ini files?
+
+You can easily create a sub-source that can be used to load settings provided in
+a section.
+
+```go
+import (
+	"fmt"
+
+	"gitlab.com/silentteacup/congo"
+)
+
+// content is the content of a ini-file used in
+// this example
+const content = "" +
+	"# Comment\n" +
+	"; Number\n" +
+	"number=54\n" +
+	"; Decimal\n" +
+	"decimal=0.5\n" +
+	"[section]\n" +
+	"duration=2h45m"
+
+// Example is a basic example for the usage of the ini source.
+func Example() {
+	// Get ini source
+	bytes := []byte(content)
+	src := FromBytes(bytes)
+
+	// main configuration
+	cfg := congo.New("main", src)
+
+	debug := cfg.Bool("debug", false, "Can be used to enable debug mode.")
+	number := cfg.Int("number", 0, "Set a number")
+	decimal := cfg.Float64("decimal", 0.2, "Set a decimal")
+
+	// section of configuration
+	subCfg := congo.New("section", src.Section("section"))
+	duration := subCfg.Duration("duration", 0, "Set the duration.")
+
+	// Load configurations
+	cfg.Init()
+	cfg.Load()
+	subCfg.Init()
+	subCfg.Load()
+
+	if *debug {
+		fmt.Println("Debug enabled!")
+	}
+	fmt.Printf("Using number %d and decimal %f\n", *number, *decimal)
+
+	fmt.Printf("%v", *duration)
+	//Output:
+	//Using number 54 and decimal 0.500000
+	//2h45m0s
+}
+
+```
 
 ## Sources
 
@@ -112,6 +167,8 @@ Congo supports the following types:
 - time.Duration
 - Value
 
+[But where is type x?](#what-is-value)
+
 ### Why is there no float/int/...32?
 
 To avoid to much methods in the congo interface only allows the 64 bit versions since 
@@ -141,3 +198,7 @@ type Configuration struct {
 ```
 Custom can be set to any value you want and will be directly added as a setting like any other
 field.
+
+You can look at [value.go](https://gitlab.com/SilentTeaCup/congo/blob/master/value.go) to 
+see how they are normally implemented. And even open MRs with new types you think 
+everyone will need.
