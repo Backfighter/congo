@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Source is a source of settings e.g. flags, environment variables or a file.
 type Source interface {
-	// Init initializes this source fro given settings
+	// Init initializes this source for given settings
 	Init(map[string]*Setting) error
 	// Load loads and sets the given settings
 	Load(map[string]*Setting) error

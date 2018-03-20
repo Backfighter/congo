@@ -118,7 +118,7 @@ func (s *ExampleSource) Load(settings map[string]*Setting) error {
 	return nil
 }
 
-func Example_Struct() {
+func ExampleCongo_Using() {
 	defaultCfg := Configuration{
 		UpdateInterval: time.Minute * 5,
 		ExecutionPath:  "/execution/path",

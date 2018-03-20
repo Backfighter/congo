@@ -5,6 +5,8 @@ import (
 
 	"io"
 
+	"fmt"
+
 	"github.com/go-ini/ini"
 )
 
@@ -40,32 +42,33 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // New creates a new ini source which reads from
 // given reader.
-func New(reader io.ReadCloser) IniSource {
-	return &iniSource{reader, ""}
+func New(reader io.ReadCloser) Source {
+	return &iniSource{reader, "", true}
 }
 
 // FromBytes creates a new ini source directly from
 // the data that should be read.
-func FromBytes(content []byte) IniSource {
-	return &iniSource{content, ""}
+func FromBytes(content []byte) Source {
+	return &iniSource{content, "", true}
 }
 
 // FromFile creates a new ini source which uses the
 // file at given path to load the configuration.
-func FromFile(path string) IniSource {
-	return &iniSource{path, ""}
+func FromFile(path string) Source {
+	return &iniSource{path, "", true}
 }
 
-// IniSource a ini source uses input in ini-syntax
+// Source a ini source uses input in ini-syntax
 // to load settings.
-type IniSource interface {
+type Source interface {
 	congo.Source
-	Section(name string) IniSource
+	Section(name string) Source
 }
 
 type iniSource struct {
-	source  interface{}
-	section string
+	source    interface{}
+	section   string
+	looseLoad bool
 }
 
 // Init initializes the ini source.
@@ -76,13 +79,21 @@ func (s *iniSource) Init(map[string]*congo.Setting) error {
 
 // Load loads the settings from input in ini-syntax.
 func (s *iniSource) Load(settings map[string]*congo.Setting) error {
-	cfg, err := ini.Load(s.source)
+	var err error
+	var cfg *ini.File
+	if s.looseLoad {
+		cfg, err = ini.LooseLoad(s.source)
+	} else {
+		cfg, err = ini.Load(s.source)
+	}
 	if err != nil {
-		return err
+		return fmt.Errorf("ini-source: couldn't load the ini-file because: %s", err)
 	}
 	section, err := cfg.GetSection(s.section)
 	if err != nil {
-		return err
+		// Section doesn't exist
+		// We simply don't load the section and use the defaults
+		return nil
 	}
 	for key, setting := range settings {
 		if !section.HasKey(key) {
@@ -90,15 +101,27 @@ func (s *iniSource) Load(settings map[string]*congo.Setting) error {
 		}
 		k, err := section.GetKey(key)
 		if err != nil {
+			// Key exists but can't get key
+			// Return error
 			return err
 		}
-		setting.Value.Set(k.Value())
+		if err := setting.Value.Set(k.Value()); err != nil {
+			return fmt.Errorf("ini-source: couldn't read setting %q "+
+				"in section %q: %s", key, s.section, err)
+		}
 	}
 	return nil
 }
 
+// SetLooseLoad sets whether this source should complain if the file
+// doesn't exist. Default is true.
+func (s *iniSource) SetLooseLoad(loose bool) Source {
+	s.looseLoad = loose
+	return s
+}
+
 // Section creates a sub-source that loads settings from a section
 // of the ini input.
-func (s *iniSource) Section(name string) IniSource {
-	return &iniSource{s.source, name}
+func (s *iniSource) Section(name string) Source {
+	return &iniSource{s.source, name, true}
 }
