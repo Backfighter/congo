@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"errors"
+
 	"gitlab.com/silentteacup/congo"
 )
 
@@ -202,6 +204,80 @@ func TestNew(t *testing.T) {
 	if v.SetParam != "54" {
 		t.Errorf("Expected Set() to be called with %s as parameter"+
 			".\nBut was called with %s.\n", "54", v.SetParam)
+	}
+}
+
+func TestIniSource_Load(t *testing.T) {
+	s := FromFile("")
+	err := s.Load(make(map[string]*congo.Setting, 0))
+	if err != nil {
+		t.Errorf("Expected load with non-existent file to work without errors.\n"+
+			"But returned error: %s\n", err)
+	}
+}
+
+func TestIniSource_Load_NotLoose(t *testing.T) {
+	s := FromFile("")
+	err := s.SetLooseLoad(false).Load(make(map[string]*congo.Setting, 0))
+	if err == nil {
+		t.Errorf("Expected non-loose load to return error.\n" +
+			"But no error was returned.\n")
+	}
+}
+
+func TestIniSource_Load_NoSection(t *testing.T) {
+	s := FromBytes([]byte("")).Section("non-existent section")
+	err := s.Load(make(map[string]*congo.Setting, 0))
+	if err != nil {
+		t.Errorf("Expected load with non-existent section to work without errors.\n"+
+			"But returned error: %s\n", err)
+	}
+}
+
+func TestIniSource_Load_NoValue(t *testing.T) {
+	v := &mockValue{
+		nil,
+		"",
+		0,
+		0,
+	}
+	v.Set("test")
+	settings := map[string]*congo.Setting{
+		"number": {
+			Name:     "number",
+			Usage:    "usage",
+			Value:    v,
+			DefValue: "0",
+		},
+	}
+	s := FromBytes([]byte(""))
+	err := s.Load(settings)
+	if err != nil {
+		t.Errorf("Expected load with non-existent value to work without errors.\n"+
+			"But returned error: %s\n", err)
+	}
+}
+
+func TestIniSource_Load_InvalidValue(t *testing.T) {
+	v := &mockValue{
+		errors.New("error"),
+		"",
+		0,
+		0,
+	}
+	settings := map[string]*congo.Setting{
+		"number": {
+			Name:     "number",
+			Usage:    "usage",
+			Value:    v,
+			DefValue: "0",
+		},
+	}
+	s := FromBytes([]byte("number=invalid"))
+	err := s.Load(settings)
+	if err == nil {
+		t.Errorf("Expected invalid value to cause return error on load.\n" +
+			"But no error was returned.\n")
 	}
 }
 
