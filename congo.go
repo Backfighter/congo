@@ -396,7 +396,7 @@ func (c *congo) Load() error {
 // A field that implements the Value type can be used to add custom, yet unsupported types.
 // These fields will be directly added using the Var() method.
 //
-// All other types will be ignored!
+// All other types, unexported fields or nil-pointers will be ignored!
 //
 // Returns itself so calls can be chained.
 func (c *congo) Using(configurationStructPtr interface{}) Congo {
@@ -423,7 +423,8 @@ const (
 // the type of the value is converted into a Value and added as settings
 // using additional information from tags.
 func (c *congo) register(f reflect.StructField, v reflect.Value) {
-	if !v.CanAddr() {
+	// Ignore unaddressable and unexported values
+	if !v.CanAddr() || !v.CanSet() {
 		return
 	}
 	usage := f.Tag.Get(usageTag)

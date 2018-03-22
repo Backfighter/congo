@@ -53,6 +53,33 @@ func (t *testSource) Load(param map[string]*Setting) error {
 	return t.LoadErr
 }
 
+type mockValue struct {
+	returnErr   error
+	SetParam    string
+	StringCalls int
+	SetCalls    int
+}
+
+func (v *mockValue) String() string {
+	v.StringCalls++
+	return v.SetParam
+}
+
+func (v *mockValue) Set(param string) error {
+	v.SetCalls++
+	v.SetParam = param
+	return v.returnErr
+}
+
+func newMockValue(err error) *mockValue {
+	return &mockValue{
+		err,
+		"",
+		0,
+		0,
+	}
+}
+
 func setupTestCongo() (Congo, *testSource) {
 	s := &testSource{}
 	sources := []Source{s}
@@ -154,5 +181,89 @@ func TestCongo_Duration(t *testing.T) {
 	if *v != time.Hour*5+time.Minute*3 {
 		t.Errorf("Expected value to be set to %v.\nBut was set to %v.\n",
 			time.Hour*5+time.Minute*3, *v)
+	}
+}
+
+func TestCongo_Var(t *testing.T) {
+	defer testForPanic(t)
+	c, _ := setupTestCongo()
+	v := newMockValue(nil)
+	c.Var(v, "test", "usage")
+	c.Var(v, "test", "usage")
+}
+
+type testStruct struct {
+	VBool    bool  `name:"value-bool" usage:"bool usage"`
+	VInt     int   `name:"int-bool"`
+	VInt64   int64 `usage:"int64 usage"`
+	VUint    uint
+	VUint64  uint64
+	VString  string
+	VFloat64 float64
+	time.Duration
+	Value
+	Vnil Value
+	// Unknown type
+	float32
+	// Unexported
+	bool
+}
+
+func TestCongo_Using(t *testing.T) {
+	v := newMockValue(nil)
+	v.SetParam = "test"
+	settings := testStruct{VUint: 5, Value: v}
+	expected := []struct {
+		name     string
+		usage    string
+		defValue string
+	}{
+		{"value-bool", "bool usage", "false"},
+		{"int-bool", "", "0"},
+		{"VInt64", "int64 usage", "0"},
+		{"VUint", "", "5"},
+		{"VUint64", "", "0"},
+		{"VString", "", ""},
+		{"VFloat64", "", "0"},
+		{"Duration", "", "0s"},
+		{"Value", "", "test"},
+	}
+	c, s := setupTestCongo()
+	c.Using(&settings)
+	c.Init()
+	params := s.InitParam
+	if len(params) != len(expected) {
+		t.Errorf("To much/less settings interpreted. Expected: %d\n"+
+			"But got: %d\n", len(expected), len(params))
+	}
+	for _, e := range expected {
+		s, ok := params[e.name]
+		if !ok {
+			t.Errorf("Expected %q to be in the settings.\nBut was not.\n", e.name)
+			continue
+		}
+		if s.Name != e.name {
+			t.Errorf("Expected name to be: %s\nBut got: %s\n", e.name, s.Name)
+		}
+		if s.DefValue != e.defValue {
+			t.Errorf("Expected default value for %q to be: %s\n"+
+				"But got: %s\n", e.name, e.defValue, s.DefValue)
+		}
+		if s.Usage != e.usage {
+			t.Errorf("Expected usage for %q to be: %s\n"+
+				"But got: %s\n", e.name, e.usage, s.Usage)
+		}
+	}
+}
+
+func TestCongo_Using2(t *testing.T) {
+	defer testForPanic(t)
+	c, _ := setupTestCongo()
+	c.Using(5)
+}
+
+func testForPanic(t *testing.T) {
+	if r := recover(); r == nil {
+		t.Errorf("Expected code to panic but it didn't.")
 	}
 }
