@@ -204,3 +204,36 @@ func TestNew(t *testing.T) {
 			".\nBut was called with %s.\n", "54", v.SetParam)
 	}
 }
+
+// TestIniSource_WriteDefaults test the writing of defaults for
+// the ini source.
+func TestIniSource_WriteDefaults(t *testing.T) {
+	v := &mockValue{
+		nil,
+		"",
+		0,
+		0,
+	}
+	v.Set("test")
+	settings := map[string]*congo.Setting{
+		"number": {
+			Name:     "number",
+			Usage:    "usage",
+			Value:    v,
+			DefValue: "0",
+		},
+	}
+	s := FromBytes(make([]byte, 0))
+	s.Init(settings)
+
+	w := bytes.NewBufferString("")
+	s.WriteDefaults(w)
+	expected := "; usage\n" +
+		"number = 0"
+	actual := strings.Trim(w.String(), "\n ")
+	if actual != expected {
+		t.Errorf("Expected written default to be:\n %q\nBut was:\n %q\n",
+			expected,
+			actual)
+	}
+}
