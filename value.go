@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 type boolValue bool
 
-func NewBoolValue(val bool, p *bool) Value {
+func newBoolValue(val bool, p *bool) Value {
 
 	*p = val
 
@@ -69,7 +69,7 @@ func (b *boolValue) IsBoolFlag() bool { return true }
 
 type intValue int
 
-func NewIntValue(val int, p *int) Value {
+func newIntValue(val int, p *int) Value {
 
 	*p = val
 
@@ -95,7 +95,7 @@ func (i *intValue) String() string { return strconv.Itoa(int(*i)) }
 
 type int64Value int64
 
-func NewInt64Value(val int64, p *int64) Value {
+func newInt64Value(val int64, p *int64) Value {
 
 	*p = val
 
@@ -121,7 +121,7 @@ func (i *int64Value) String() string { return strconv.FormatInt(int64(*i), 10) }
 
 type uintValue uint
 
-func NewUintValue(val uint, p *uint) Value {
+func newUintValue(val uint, p *uint) Value {
 
 	*p = val
 
@@ -147,7 +147,7 @@ func (i *uintValue) String() string { return strconv.FormatUint(uint64(*i), 10) 
 
 type uint64Value uint64
 
-func NewUint64Value(val uint64, p *uint64) Value {
+func newUint64Value(val uint64, p *uint64) Value {
 
 	*p = val
 
@@ -173,7 +173,7 @@ func (i *uint64Value) String() string { return strconv.FormatUint(uint64(*i), 10
 
 type stringValue string
 
-func NewStringValue(val string, p *string) Value {
+func newStringValue(val string, p *string) Value {
 
 	*p = val
 
@@ -197,7 +197,7 @@ func (s *stringValue) String() string { return string(*s) }
 
 type float64Value float64
 
-func NewFloat64Value(val float64, p *float64) Value {
+func newFloat64Value(val float64, p *float64) Value {
 
 	*p = val
 
@@ -223,7 +223,7 @@ func (f *float64Value) String() string { return strconv.FormatFloat(float64(*f),
 
 type durationValue time.Duration
 
-func NewDurationValue(val time.Duration, p *time.Duration) Value {
+func newDurationValue(val time.Duration, p *time.Duration) Value {
 
 	*p = val
 

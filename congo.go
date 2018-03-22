@@ -196,7 +196,7 @@ type congo struct {
 //
 // Returns itself so calls can be chained.
 func (c *congo) BoolVar(p *bool, name string, value bool, usage string) Congo {
-	c.Var(NewBoolValue(value, p), name, usage)
+	c.Var(newBoolValue(value, p), name, usage)
 	return c
 }
 
@@ -213,7 +213,7 @@ func (c *congo) Bool(name string, value bool, usage string) *bool {
 //
 // Returns itself so calls can be chained.
 func (c *congo) IntVar(p *int, name string, value int, usage string) Congo {
-	c.Var(NewIntValue(value, p), name, usage)
+	c.Var(newIntValue(value, p), name, usage)
 	return c
 }
 
@@ -230,7 +230,7 @@ func (c *congo) Int(name string, value int, usage string) *int {
 //
 // Returns itself so calls can be chained.
 func (c *congo) Int64Var(p *int64, name string, value int64, usage string) Congo {
-	c.Var(NewInt64Value(value, p), name, usage)
+	c.Var(newInt64Value(value, p), name, usage)
 	return c
 }
 
@@ -247,7 +247,7 @@ func (c *congo) Int64(name string, value int64, usage string) *int64 {
 //
 // Returns itself so calls can be chained.
 func (c *congo) UintVar(p *uint, name string, value uint, usage string) Congo {
-	c.Var(NewUintValue(value, p), name, usage)
+	c.Var(newUintValue(value, p), name, usage)
 	return c
 }
 
@@ -264,7 +264,7 @@ func (c *congo) Uint(name string, value uint, usage string) *uint {
 //
 // Returns itself so calls can be chained.
 func (c *congo) Uint64Var(p *uint64, name string, value uint64, usage string) Congo {
-	c.Var(NewUint64Value(value, p), name, usage)
+	c.Var(newUint64Value(value, p), name, usage)
 	return c
 }
 
@@ -281,7 +281,7 @@ func (c *congo) Uint64(name string, value uint64, usage string) *uint64 {
 //
 // Returns itself so calls can be chained.
 func (c *congo) StringVar(p *string, name string, value string, usage string) Congo {
-	c.Var(NewStringValue(value, p), name, usage)
+	c.Var(newStringValue(value, p), name, usage)
 	return c
 }
 
@@ -298,7 +298,7 @@ func (c *congo) String(name string, value string, usage string) *string {
 //
 // Returns itself so calls can be chained.
 func (c *congo) Float64Var(p *float64, name string, value float64, usage string) Congo {
-	c.Var(NewFloat64Value(value, p), name, usage)
+	c.Var(newFloat64Value(value, p), name, usage)
 	return c
 }
 
@@ -316,7 +316,7 @@ func (c *congo) Float64(name string, value float64, usage string) *float64 {
 //
 // Returns itself so calls can be chained.
 func (c *congo) DurationVar(p *time.Duration, name string, value time.Duration, usage string) Congo {
-	c.Var(NewDurationValue(value, p), name, usage)
+	c.Var(newDurationValue(value, p), name, usage)
 	return c
 }
 
