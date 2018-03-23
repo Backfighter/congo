@@ -51,6 +51,5 @@ func (s *source) Init(settings map[string]*congo.Setting) error {
 
 // Load parses the flags using arguments loaded by the argument loader.
 func (s *source) Load(settings map[string]*congo.Setting) error {
-	s.set.Parse(s.ArgLoader())
-	return nil
+	return s.set.Parse(s.ArgLoader())
 }

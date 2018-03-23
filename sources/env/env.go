@@ -7,6 +7,8 @@ import (
 
 	"regexp"
 
+	"fmt"
+
 	"gitlab.com/silentteacup/congo"
 )
 
@@ -90,7 +92,10 @@ func (s *source) Load(settings map[string]*congo.Setting) error {
 		for _, alternative := range s.translator(key) {
 			value, ok := os.LookupEnv(alternative)
 			if ok {
-				setting.Value.Set(value)
+				if err := setting.Value.Set(value); err != nil {
+					return fmt.Errorf("env-source: couldn't read setting %q: "+
+						"%s", key, err)
+				}
 				break
 			}
 		}

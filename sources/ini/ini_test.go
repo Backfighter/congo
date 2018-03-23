@@ -187,7 +187,7 @@ func TestNew(t *testing.T) {
 
 func TestIniSource_Load(t *testing.T) {
 	s := FromFile("")
-	err := s.Load(make(map[string]*congo.Setting, 0))
+	err := s.Load(make(map[string]*congo.Setting))
 	if err != nil {
 		t.Errorf("Expected load with non-existent file to work without errors.\n"+
 			"But returned error: %s\n", err)
@@ -196,7 +196,7 @@ func TestIniSource_Load(t *testing.T) {
 
 func TestIniSource_Load_NotLoose(t *testing.T) {
 	s := FromFile("")
-	err := s.SetLooseLoad(false).Load(make(map[string]*congo.Setting, 0))
+	err := s.SetLooseLoad(false).Load(make(map[string]*congo.Setting))
 	if err == nil {
 		t.Errorf("Expected non-loose load to return error.\n" +
 			"But no error was returned.\n")
@@ -205,7 +205,7 @@ func TestIniSource_Load_NotLoose(t *testing.T) {
 
 func TestIniSource_Load_NoSection(t *testing.T) {
 	s := FromBytes([]byte("")).Section("non-existent section")
-	err := s.Load(make(map[string]*congo.Setting, 0))
+	err := s.Load(make(map[string]*congo.Setting))
 	if err != nil {
 		t.Errorf("Expected load with non-existent section to work without errors.\n"+
 			"But returned error: %s\n", err)
